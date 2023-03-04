@@ -11,9 +11,6 @@ import numpy as np
 import requests
 import json
 import time
-import pymongo
-from pymongo import MongoClient
-
 
 class BinancePz:
     """
@@ -38,8 +35,6 @@ class BinancePz:
     """
 
     def __init__(self, db_path='pz.db', token="", bnb_key="", bnb_secret=""):
-        self.clidb      = MongoClient()
-        self.db         = self.clidb['savethat-trade']
         self.conf       = [[],token, bnb_key, bnb_secret]
         # Telegram setup
         self.tgadmins   = self.conf[0]

@@ -1,0 +1,5 @@
+tqdm 
+python-binance
+tabulate
+numpy
+requests
