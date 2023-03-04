@@ -24,7 +24,7 @@ class BinancePz:
                 * transfer FIN to SPOT
                 * transfer SPOT to FIN
             - Helpers
-                * get_asset
+                * get_asset 
                 * get_closest_bid_price
                 * get_closest_ask_price
                 * get_last_trades
@@ -166,72 +166,6 @@ class BinancePz:
         ])
 
 
-    def go_short(self, symbol, percentage, quantity, order_type="MARKET", stack=False):
-        """ 
-        :symbol: param - asset pair
-        :percentage: param 
-        :quantity: param
-        :order_type: param
-        :stack: param - asset shorting as stacking - add gain to the BUY 
-        """
-        # Parameters quality checks
-        try:
-            # Realtime parameters
-            pars_quantity = self.pretty(symbol, float(quantity), 'qty') 
-
-            order = None
-            buy_prc = None
-            # ACTION - Place SELL order 
-            if order_type == "LIMIT":
-                order = self.client.order_limit_sell(symbol=symbol, quantity=pars_quantity, price=buy_prc)
-            elif order_type == "MARKET":
-                order = self.client.order_market_sell(symbol=symbol, quantity=pars_quantity)
-                buy_prc = self.get_closest_ask_price(symbol)
-
-            # ACTION - Wait for order fulfilling
-            order_not_filled = True
-
-            while order_not_filled:
-                try:
-                    order_not_filled = self.client.get_order(symbol=symbol, orderId=order['orderId'])['status'] != "FILLED" 
-                    if order['status'] == "CANCELED":
-                        return self.send_message("ORDER cancelled manually, im safelly sho=utting the process down.")
-                    time.sleep(2)
-                except IndexError:
-                    pass 
-            sordid=order['orderId']    
-            close_prc =  float(buy_prc) - (float(buy_prc) / 100 * float(percentage))
-            close_prc_str = str(self.pretty_number(self.pretty(symbol, close_prc, 'exitPrice')))
-
-            # Parameter STACK - increase quantity or keep it costant
-            if stack:
-                qty = self.pretty(symbol, float(quantity)/100 * (float(percentage - 0.1)) + float(quantity), 'qty')
-                gain = self.pretty(symbol, qty-quantity, 'qty')
-            else:
-                # if not stack then the gain differs cause the gain is on base coin
-                # therefore we need to count bought price  - closed+price
-                qty = float(quantity)
-                gain = (close_prc*qty) - (buy_prc * qty)
-                gain = self.pretty(symbol, qty-quantity, 'qty')
-
-            log = { 'symbol': symbol, 'Quantity':pars_quantity,'StartPrice':"{:.8f}".format(buy_prc), '%':percentage, 'EndPrice': close_prc, 'PNL':"{:.8f}".format(gain)}
-            self.send_message(json.dumps(log,indent=2 ))
-            # ACTION - Order BUY calcul
-            order = None
-            try:
-                order = self.client.order_limit_buy(
-                    symbol=symbol,
-                    price=close_prc_str,
-                    quantity=qty)
-            except Exception as e:
-                print(e)
-                print(qty, order)
-            #self.log_trade('SHORT', symbol, buy_price, close_price, qty, sordi, order['orderId'])
-            # SAVE To DB
-            return "Success!"
-        except:
-            raise
-
 
     def transfer_dust(self, symbol='USDT', quantity=''):
         quantity =  float(self.client.get_asset_balance(asset=symbol)['free']) if quantity=='' else quantity
@@ -255,8 +189,16 @@ class BinancePz:
         
         pass #self.client.
 
-    def calculate_exit_price(symbol, percentage, start_price):
-        pass
+
+    def calculate_exit_price(symbol, percentage, start_price, long_short='long'):
+        # formula : final_price = start_price + start_price / 100 percentage 
+        if long_short=='long':
+            close_prc =  float(start_price) + (float(start_price) / 100 * float(percentage))
+        else:    
+            close_prc =  float(start_price) - (float(start_price) / 100 * float(percentage))
+
+        return str(self.pretty_number(self.pretty(symbol, close_prc, 'exitPrice')))
+    
 
 
 
