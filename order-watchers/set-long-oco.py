@@ -16,6 +16,8 @@ pz = BinancePz('',
 for coin in pz.get_wallet():
     print(coin)
 
+# print(pz.client.get_symbol_info("PERLUSDT"))
+
 
 def main():
     twm = ThreadedWebsocketManager(api_key=config['bnb_key'], api_secret=config['bnb_secret'])
@@ -47,7 +49,6 @@ def main():
         reference = https://binance-docs.github.io/apidocs/spot/en/#payload-balance-update
         print(msg)
         """
-        percentage = 1
         user_settings = json.load(open('user_settings.json'))
 
         # logging
@@ -55,23 +56,35 @@ def main():
             json.dump(msg, open('pz.log', 'a+'), indent=4)
 
         if msg['e'] == "executionReport" and msg['S'] == "BUY" and msg['X'] == "FILLED":
-            print(f"msg status: {msg['X']}, price: {msg['p']}")
 
             # // limit order //
             exit_price = calculate_exit_price(msg['s'], user_settings['target_percentuale'], msg['p'])
-            quantity = float(msg['q'])-float(msg['n']) 
-            # quantity = pz.get_wallet()['']
+            # quantity = float(msg['q'])-float(msg['n']) 
+            for coin in pz.get_wallet():
+                if coin[0] == msg['s'][0:-4]:
+                    quantity =  pz.pretty(msg['s'], coin[1], 'qty')
+
+            print(f"[{msg['s']}] Quantity {quantity}")
+
 
             stopP, stopL = calculate_stop_price(msg['s'], user_settings['stop_percentuale'],msg['p'])
             try: 
                 # OCO ORDER - LONG
-                pz.client.order_oco_sell(
-                    symbol=msg['s'], 
-                    quantity=pz.pretty(msg['s'], quantity, 'qty'),
-                    price= exit_price,
+                # pz.client.order_oco_sell(
+                #     symbol=msg['s'], 
+                #     quantity= quantity,
+                #     price= exit_price,
+                #     stopPrice=stopP
+                #     )
+                pz.client.create_order(
+                    symbol=msg['s'],
+                    side=SIDE_SELL,
+                    type=ORDER_TYPE_STOP_LOSS_LIMIT,
+                    timeInForce=TIME_IN_FORCE_GTC,
+                    quantity=quantity,
                     stopPrice=stopP,
-                    stopLimit=stopL
-                    )
+                    price=stopL
+                )
             except Exception as e:
                 pz.send_message(str(e))
                 raise e            
