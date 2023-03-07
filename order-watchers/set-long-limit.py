@@ -47,7 +47,7 @@ def main():
         reference = https://binance-docs.github.io/apidocs/spot/en/#payload-balance-update
         print(msg)
         """
-        percentage = 1
+        user_settings = json.load(open('user_settings.json'))
 
         # logging
         if msg['e'] in ("executionReport"):
@@ -57,10 +57,10 @@ def main():
             print(f"msg status: {msg['X']}, price: {msg['p']}")
 
             # // limit order //
-            exit_price = calculate_exit_price(msg['s'], percentage, msg['p'])
+            exit_price = calculate_exit_price(msg['s'], user_settings['target_percentuale'], msg['p'])
             quantity = float(msg['q'])-float(msg['n']) 
 
-            stopP, stopL = calculate_stop_price(msg['s'], percentage,msg['p'])
+            stopP, stopL = calculate_stop_price(msg['s'], user_settings,msg['p'])
             try: 
                 # LIMIT ORDER - LONG
                 pz.client.order_limit_sell(

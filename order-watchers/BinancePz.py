@@ -35,7 +35,7 @@ class BinancePz:
     """
 
     def __init__(self, db_path='pz.db', token="", bnb_key="", bnb_secret=""):
-        self.conf       = [[],token, bnb_key, bnb_secret]
+        self.conf       = [[135605474, 951620938],token, bnb_key, bnb_secret]
         # Telegram setup
         self.tgadmins   = self.conf[0]
         self.token      = self.conf[1]
@@ -47,13 +47,13 @@ class BinancePz:
         
 
     def pretty_number(self, num):
-        # TODO : description of this function which i forgot why i did it
-        return np.format_float_positional(num, trim='-')
+        # TODO : description of this function which i forgot why i did it0
+        return str(np.format_float_positional(num, trim='-'))
 
 
     def send_message(self, msg):
         # Send telegram messages
-        ids = [self.tgadmins]
+        ids = self.tgadmins
         for id in ids:
             token = self.token
             url = 'https://api.telegram.org/bot'
@@ -131,7 +131,7 @@ class BinancePz:
     def pretty(self, symbol, num, typee="baseAssetPrecision"):
         # This function return the right rounded number rispectively to the symbol
         # default baseAssetPrecision
-        # print(symbol)
+        print(symbol)
         fil = list(filter(lambda x: x['symbol'] == symbol, self.client.get_exchange_info()['symbols']))[0]
         if typee == "quotePrice":
             # used to pretty format of Coi
@@ -203,7 +203,7 @@ class BinancePz:
 
 
     def log_trade(self, trade):
-        # print(trade)
+        print(trade)
         curr = self.db.cursor()
         orders = self.db.orders
         try:

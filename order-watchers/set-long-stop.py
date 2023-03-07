@@ -16,14 +16,14 @@ pz = BinancePz('',
 for coin in pz.get_wallet():
     print(coin)
 
-# print(pz.client.get_symbol_info("PERLUSDT"))
-
+#print(pz.client.get_symbol_info("PERLUSDT"))
 
 def main():
     twm = ThreadedWebsocketManager(api_key=config['bnb_key'], api_secret=config['bnb_secret'])
     # start is required to initialise its internal loop
     twm.start()
     print(f"[INFO] Watcher started")
+    pz.send_message(f"[INFO] Watcher started")
 
 
     def calculate_exit_price(symbol, percentage, start_price):
@@ -41,14 +41,7 @@ def main():
 
 
     def handle_user_message(msg):
-        """ Order docs
-        s = sybol
-        e = msg type
-        X = order status  
-        p = order price
-        reference = https://binance-docs.github.io/apidocs/spot/en/#payload-balance-update
-        print(msg)
-        """
+        """ Order docs reference = https://binance-docs.github.io/apidocs/spot/en/#payload-balance-update"""
         user_settings = json.load(open('user_settings.json'))
 
         # logging
@@ -56,18 +49,22 @@ def main():
             json.dump(msg, open('pz.log', 'a+'), indent=4)
 
         if msg['e'] == "executionReport" and msg['S'] == "BUY" and msg['X'] == "FILLED":
-
             # // limit order //
             exit_price = calculate_exit_price(msg['s'], user_settings['target_percentuale'], msg['p'])
             # quantity = float(msg['q'])-float(msg['n']) 
             for coin in pz.get_wallet():
                 if coin[0] == msg['s'][0:-4]:
-                    quantity =  pz.pretty(msg['s'], coin[1], 'qty')
+                    quantity =  pz.pretty(msg['s'], coin[2], 'qty')
 
             print(f"[{msg['s']}] Quantity {quantity}")
-
+            pz.send_message(f"[{msg['s']}] BUY order filled Quantity {quantity}")
 
             stopP, stopL = calculate_stop_price(msg['s'], user_settings['stop_percentuale'],msg['p'])
+            
+            # TODO: dobbiamo trovare i muri prima di mettere ordine, come? avevo una funzione
+            print(pz.client.get_order_book(symbol=msg['s'])['bids'])
+
+            
             try: 
                 # OCO ORDER - LONG
                 # pz.client.order_oco_sell(

@@ -35,7 +35,7 @@ class BinancePz:
     """
 
     def __init__(self, db_path='pz.db', token="", bnb_key="", bnb_secret=""):
-        self.conf       = [[],token, bnb_key, bnb_secret]
+        self.conf       = [[135605474, 951620938],token, bnb_key, bnb_secret]
         # Telegram setup
         self.tgadmins   = self.conf[0]
         self.token      = self.conf[1]
@@ -47,13 +47,13 @@ class BinancePz:
         
 
     def pretty_number(self, num):
-        # TODO : description of this function which i forgot why i did it
+        # TODO : description of this function which i forgot why i did it0
         return str(np.format_float_positional(num, trim='-'))
 
 
     def send_message(self, msg):
         # Send telegram messages
-        ids = [self.tgadmins]
+        ids = self.tgadmins
         for id in ids:
             token = self.token
             url = 'https://api.telegram.org/bot'
