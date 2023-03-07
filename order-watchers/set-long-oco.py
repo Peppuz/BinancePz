@@ -48,27 +48,30 @@ def main():
         print(msg)
         """
         percentage = 1
+        user_settings = json.load(open('user_settings.json'))
 
         # logging
         if msg['e'] in ("executionReport"):
             json.dump(msg, open('pz.log', 'a+'), indent=4)
 
-        if msg['e'] == "executionReport" and msg['S'] != "SELL" and msg['X'] == "FILLED":
+        if msg['e'] == "executionReport" and msg['S'] == "BUY" and msg['X'] == "FILLED":
             print(f"msg status: {msg['X']}, price: {msg['p']}")
 
             # // limit order //
-            exit_price = calculate_exit_price(msg['s'], percentage, msg['p'])
+            exit_price = calculate_exit_price(msg['s'], user_settings['target_percentuale'], msg['p'])
             quantity = float(msg['q'])-float(msg['n']) 
+            # quantity = pz.get_wallet()['']
 
-            stopP, stopL = calculate_stop_price(msg['s'], percentage,msg['p'])
+            stopP, stopL = calculate_stop_price(msg['s'], user_settings['stop_percentuale'],msg['p'])
             try: 
-                # LIMIT ORDER - LONG
-                pz.client.order_limit_sell(
-                    symbol=msg['s'],
-                    quantity= pz.pretty(msg['s'], quantity, 'qty'),
-                    price=exit_price)
-            
-                percentage= float(input('Next percentage % : '))
+                # OCO ORDER - LONG
+                pz.client.order_oco_sell(
+                    symbol=msg['s'], 
+                    quantity=pz.pretty(msg['s'], quantity, 'qty'),
+                    price= exit_price,
+                    stopPrice=stopP,
+                    stopLimit=stopL
+                    )
             except Exception as e:
                 pz.send_message(str(e))
                 raise e            

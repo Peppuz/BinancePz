@@ -48,7 +48,7 @@ class BinancePz:
 
     def pretty_number(self, num):
         # TODO : description of this function which i forgot why i did it
-        return str(np.format_float_positional(num, trim='-'))
+        return np.format_float_positional(num, trim='-')
 
 
     def send_message(self, msg):
